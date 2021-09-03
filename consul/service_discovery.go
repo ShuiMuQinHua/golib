@@ -16,8 +16,8 @@ type ServiceRegistry interface {
 }
 
 type consulServiceRegistry struct {
-	addr string
-	token string
+	addr                 string
+	token                string
 	serviceInstances     map[string]map[string]ServiceInstance
 	client               api.Client
 	localServiceInstance ServiceInstance
@@ -44,28 +44,28 @@ func NewConsulServiceRegistry(addr string, token string) (ServiceRegistry, error
 func (c *consulServiceRegistry) WatchPlan(serviceName string, handler func(string, []ServiceInstance)) error {
 	watchConfig := make(map[string]interface{})
 
-  watchConfig["type"] = "service"
-  watchConfig["service"] = serviceName
-  watchConfig["handler_type"] = "script"
-  watchConfig["passingonly"] = true
+	watchConfig["type"] = "service"
+	watchConfig["service"] = serviceName
+	watchConfig["handler_type"] = "script"
+	watchConfig["passingonly"] = true
 
-  watchPlan, err := watch.Parse(watchConfig)
-  if err != nil {
-  	return err
-  }
+	watchPlan, err := watch.Parse(watchConfig)
+	if err != nil {
+		return err
+	}
 
-  cb := func(lastIndex uint64, result interface{}) {
-      serviceList := result.([]*api.ServiceEntry)
-			ret := make([]ServiceInstance, len(serviceList))
-			for index, service := range serviceList {
-				ret[index] = getServiceInstance(service)
-			}
-			handler(serviceName, ret)
-  }
+	cb := func(lastIndex uint64, result interface{}) {
+		serviceList := result.([]*api.ServiceEntry)
+		ret := make([]ServiceInstance, len(serviceList))
+		for index, service := range serviceList {
+			ret[index] = getServiceInstance(service)
+		}
+		handler(serviceName, ret)
+	}
 
-  watchPlan.Handler = cb
+	watchPlan.Handler = cb
 
-  return watchPlan.Run(c.addr)
+	return watchPlan.Run(c.addr)
 }
 
 /**
@@ -187,4 +187,3 @@ func (c *consulServiceRegistry) GetServices() ([]string, error) {
 	}
 	return result, nil
 }
-
